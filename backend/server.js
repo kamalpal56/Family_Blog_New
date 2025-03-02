@@ -1,32 +1,34 @@
-// server.js
 import express from 'express';
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import cors from 'cors';
+import postRoutes from './routes/post.js'; // Ensure correct path
+import authRoutes from './routes/auth.js';
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
+
+
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-const startServer = async () => {
-  try {
-    console.log("MongoDB URI:", process.env.MONGO_URI);
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('Connected to MongoDB');
-    app.listen(5000, () => console.log('Server running on port 5000'));
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-  }
-};
 
-startServer();
+// ✅ Check if this logs correctly
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
 
-// Sample Route
-app.get('/', (req, res) => {
-  res.send('Welcome to the Family Blog Backend!');
+// ✅ Correct endpoint paths
+app.use('/api/posts', postRoutes);
+app.use('/api/auth', authRoutes);
+
+app.use((req, res, next) => {
+  console.log('Incoming request:', req.method, req.url);
+  next();
 });
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection error:', err));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
